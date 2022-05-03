@@ -7,13 +7,13 @@ import torch.nn.functional as F
 import numpy as np
 import cv2
 
-from data import cfg, mask_type, MEANS, STD, activation_func
-from utils.augmentations import Resize
-from utils import timer
-from .box_utils import crop, sanitize_coordinates
+from models.yolact.data import cfg, mask_type, MEANS, STD, activation_func
+from models.yolact.utils.augmentations import Resize
+from models.yolact.utils import timer
+from models.yolact.layers.box_utils import crop, sanitize_coordinates
 
 def postprocess(det_output, w, h, batch_idx=0, interpolation_mode='bilinear',
-                visualize_lincomb=False, crop_masks=True, score_threshold=0):
+                visualize_lincomb=False, crop_masks=True, score_threshold=0,rescore_bbox=False):
     """
     Postprocesses the output of Yolact on testing mode into a format that makes sense,
     accounting for all the possible configuration settings.
@@ -60,8 +60,8 @@ def postprocess(det_output, w, h, batch_idx=0, interpolation_mode='bilinear',
         proto_data = dets['proto']
         
         # Test flag, do not upvote
-        if cfg.mask_proto_debug:
-            np.save('scripts/proto.npy', proto_data.cpu().numpy())
+        # if cfg.mask_proto_debug:
+        #     np.save('scripts/proto.npy', proto_data.cpu().numpy())
         
         if visualize_lincomb:
             display_lincomb(proto_data, masks)
@@ -82,7 +82,7 @@ def postprocess(det_output, w, h, batch_idx=0, interpolation_mode='bilinear',
                     maskiou_p = net.maskiou_net(masks.unsqueeze(1))
                     maskiou_p = torch.gather(maskiou_p, dim=1, index=classes.unsqueeze(1)).squeeze(1)
                     if cfg.rescore_mask:
-                        if cfg.rescore_bbox:
+                        if cfg.rescore_bbox or rescore_bbox:
                             scores = scores * maskiou_p
                         else:
                             scores = [scores, scores * maskiou_p]

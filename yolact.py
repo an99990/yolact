@@ -8,14 +8,14 @@ from math import sqrt
 from typing import List
 from collections import defaultdict
 
-from data.config import cfg, mask_type
-from layers import Detect
-from layers.interpolate import InterpolateModule
-from backbone import construct_backbone
+from models.yolact.data import cfg, mask_type
+from models.yolact.layers import Detect
+from models.yolact.layers.interpolate import InterpolateModule
+from models.yolact.backbone import construct_backbone
 
 import torch.backends.cudnn as cudnn
-from utils import timer
-from utils.functions import MovingAverage, make_net
+from models.yolact.utils import timer
+from models.yolact.utils.functions import MovingAverage, make_net
 
 # This is required for Pytorch 1.0.1 on Windows to initialize Cuda on some driver versions.
 # See the bug report here: https://github.com/pytorch/pytorch/issues/17108

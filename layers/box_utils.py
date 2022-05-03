@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import torch
-from utils import timer
+from models.yolact.utils import timer
 
-from data import cfg
+from models.yolact.data.config import cfg
 
 @torch.jit.script
 def point_form(boxes):

@@ -1,14 +1,14 @@
-from data import COCODetection, get_label_map, MEANS, COLORS
-from yolact import Yolact
-from utils.augmentations import BaseTransform, FastBaseTransform, Resize
-from utils.functions import MovingAverage, ProgressBar
-from layers.box_utils import jaccard, center_size, mask_iou
-from utils import timer
-from utils.functions import SavePath
-from layers.output_utils import postprocess, undo_image_transformation
+from models.yolact.data import COCODetection, get_label_map, MEANS, COLORS
+from models.yolact.yolact import Yolact
+from models.yolact.utils.augmentations import BaseTransform, FastBaseTransform, Resize
+from models.yolact.utils.functions import MovingAverage, ProgressBar
+from models.yolact.layers.box_utils import jaccard, center_size, mask_iou
+from models.yolact.utils import timer
+from models.yolact.utils.functions import SavePath
+from models.yolact.layers.output_utils import postprocess, undo_image_transformation
 import pycocotools
 
-from data import cfg, set_cfg, set_dataset
+from models.yolact.data import cfg, set_cfg, set_dataset
 
 import numpy as np
 import torch
@@ -41,7 +41,7 @@ def parse_args(argv=None):
     parser = argparse.ArgumentParser(
         description='YOLACT COCO Evaluation')
     parser.add_argument('--trained_model',
-                        default='weights/ssd300_mAP_77.43_v2.pth', type=str,
+                        default='/home/huynhanh/ros_ws/src/halodi_segmentation/halodi_segmentation/models_weights/yolact_plus_base_54_800000.pth', type=str,
                         help='Trained state_dict file path to open. If "interrupt", this will open the interrupt file.')
     parser.add_argument('--top_k', default=5, type=int,
                         help='Further restrict the number of predictions to parse')
@@ -95,7 +95,7 @@ def parse_args(argv=None):
                         help='Outputs stuff for scripts/compute_mask.py.')
     parser.add_argument('--no_crop', default=False, dest='crop', action='store_false',
                         help='Do not crop output masks with the predicted bounding box.')
-    parser.add_argument('--image', default=None, type=str,
+    parser.add_argument('--image', default="/home/huynhanh/ros_ws/src/halodi_segmentation/images/person_bike.jpg", type=str,
                         help='A path to an image to use for display.')
     parser.add_argument('--images', default=None, type=str,
                         help='An input folder of images and output folder to save detected images. Should be in the format input->output.')
@@ -103,7 +103,7 @@ def parse_args(argv=None):
                         help='A path to a video to evaluate on. Passing in a number will use that index webcam.')
     parser.add_argument('--video_multiframe', default=1, type=int,
                         help='The number of frames to evaluate in parallel to make videos play at higher fps.')
-    parser.add_argument('--score_threshold', default=0, type=float,
+    parser.add_argument('--score_threshold', default=0.15, type=float,
                         help='Detections with a score under this threshold will not be considered. This currently only works in display mode.')
     parser.add_argument('--dataset', default=None, type=str,
                         help='If specified, override the dataset specified in the config with this one (example: coco2017_dataset).')
@@ -146,13 +146,13 @@ def prep_display(dets_out, img, h, w, undo_transform=True, class_color=False, ma
     with timer.env('Postprocess'):
         save = cfg.rescore_bbox
         cfg.rescore_bbox = True
-        t = postprocess(dets_out, w, h, visualize_lincomb = args.display_lincomb,
-                                        crop_masks        = args.crop,
-                                        score_threshold   = args.score_threshold)
+        t = postprocess(dets_out, w, h, visualize_lincomb = False,
+                                        crop_masks        = True,
+                                        score_threshold   = 0.15)
         cfg.rescore_bbox = save
 
     with timer.env('Copy'):
-        idx = t[1].argsort(0, descending=True)[:args.top_k]
+        idx = t[1].argsort(0, descending=True)[:5]
         
         if cfg.eval_mask_branch:
             # Masks are drawn on the GPU, so don't copy
@@ -161,7 +161,7 @@ def prep_display(dets_out, img, h, w, undo_transform=True, class_color=False, ma
 
     num_dets_to_consider = min(args.top_k, classes.shape[0])
     for j in range(num_dets_to_consider):
-        if scores[j] < args.score_threshold:
+        if scores[j] < 0.15:
             num_dets_to_consider = j
             break
 
