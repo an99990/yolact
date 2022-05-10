@@ -128,6 +128,19 @@ dataset_base = Config({
     'label_map': None
 })
 
+my_custom_dataset = dataset_base.copy({
+    'name': 'Alpro',
+
+    'train_images': '/home/huynhanh/Desktop/grocery_objects/instance_dir/JPEGImages',
+    'train_info':   '/home/huynhanh/Desktop/grocery_objects/instance_dir/annotations.json',
+
+    'valid_images': '/home/huynhanh/Desktop/grocery_objects/instance_dir/JPEGImages',
+    'valid_info':   '/home/huynhanh/Desktop/grocery_objects/instance_dir/annotations.json',
+
+    'has_gt': True,
+    'class_names': ('alpro')
+})
+
 coco2014_dataset = dataset_base.copy({
     'name': 'COCO 2014',
     
@@ -657,8 +670,8 @@ yolact_base_config = coco_base_config.copy({
     'name': 'yolact_base',
 
     # Dataset stuff
-    'dataset': coco2017_dataset,
-    'num_classes': len(coco2017_dataset.class_names) + 1,
+    'dataset': my_custom_dataset,
+    'num_classes': len(my_custom_dataset.class_names) + 1,
 
     # Image Size
     'max_size': 550,
